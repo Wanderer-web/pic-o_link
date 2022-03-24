@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "headfile.h": "c",
+        "spi_slave.h": "c",
+        "spi_slave_hal.h": "c"
+    }
+}
