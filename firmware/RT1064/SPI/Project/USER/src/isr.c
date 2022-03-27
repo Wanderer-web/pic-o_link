@@ -37,10 +37,6 @@ void PIT_IRQHandler(void)
     if (PIT_FLAG_GET(PIT_CH0))
     {
         PIT_FLAG_CLEAR(PIT_CH0);
-        pit_start(PIT_CH1);
-        spi_mosi(SPI_NUM, SPI_CS_PIN, mt9v03x_csi_image[0], NULL, 60 * 90, 1);
-        trans_ms = (uint16)(pit_get_ms(PIT_CH1));
-        pit_close(PIT_CH1);
     }
 
     if (PIT_FLAG_GET(PIT_CH1))

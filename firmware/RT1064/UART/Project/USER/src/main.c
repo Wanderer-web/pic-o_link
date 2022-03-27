@@ -38,10 +38,9 @@ int main(void)
     seekfree_wireless_init();
     mt9v03x_csi_init();
     ips114_init();
-    systick_delay_ms(1000);
     pit_init();
-    NVIC_SetPriority(PIT_IRQn, 10);
-    pit_interrupt_ms(PIT_CH0, 40);
+
+    systick_delay_ms(1000);
 
     //总中断最后开启
     EnableGlobalIRQ(0);
@@ -50,8 +49,12 @@ int main(void)
         //此处编写需要循环执行的代码
         if (mt9v03x_csi_finish_flag)
         {
-            ips114_showuint16(0, 0, (uint16)trans_ms);
+            pit_start(PIT_CH1);
+            seekfree_wireless_send_buff(mt9v03x_csi_image[0], 90 * 60);
+            trans_ms = (uint16)(pit_get_ms(PIT_CH1));
+            pit_close(PIT_CH1);
             mt9v03x_csi_finish_flag = 0;
+            ips114_showuint16(0, 0, (uint16)trans_ms);
         }
     }
 }

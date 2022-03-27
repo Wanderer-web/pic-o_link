@@ -171,7 +171,7 @@ void seekfree_wireless_init(void)
 //-------------------------------------------------------------------------------------------------------------------
 uint32 seekfree_wireless_send_buff(uint8 *buff, uint32 len)
 {
-    while (len > 100)
+    while (len > 60)
     {
         //        if(gpio_get(RTS_PIN))
         //        {
@@ -179,10 +179,10 @@ uint32 seekfree_wireless_send_buff(uint8 *buff, uint32 len)
         //        }
         while (gpio_get(RTS_PIN))
             ; //如果RTS为低电平，则继续发送数据
-        uart_putbuff(WIRELESS_UART, buff, 100);
+        uart_putbuff(WIRELESS_UART, buff, 60);
 
-        buff += 100; //地址偏移
-        len -= 100;  //数量
+        buff += 60; //地址偏移
+        len -= 60;  //数量
     }
 
     //    if(gpio_get(RTS_PIN))

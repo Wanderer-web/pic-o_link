@@ -1,3 +1,11 @@
+/*
+ * @Author: your name
+ * @Date: 2022-03-20 17:56:13
+ * @LastEditTime: 2022-03-27 11:51:24
+ * @LastEditors: your name
+ * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @FilePath: \MDKd:\MyProjects\image-transmitter\firmware\rt1064\SPI\Project\USER\src\main.c
+ */
 /*********************************************************************************************************************
  * COPYRIGHT NOTICE
  * Copyright (c) 2019,逐飞科技
@@ -46,16 +54,18 @@ int main(void)
     ips114_init();
     systick_delay_ms(1000);
     pit_init();
-    NVIC_SetPriority(PIT_IRQn, 10);
-    pit_interrupt_ms(PIT_CH0, 30);
     //总中断最后开启
     EnableGlobalIRQ(0);
     while (1)
     {
         if (mt9v03x_csi_finish_flag)
         {
-            ips114_showuint16(0, 0, (uint16)trans_ms);
+            pit_start(PIT_CH1);
+            spi_mosi(SPI_NUM, SPI_CS_PIN, mt9v03x_csi_image[0], NULL, 60 * 90, 1);
+            trans_ms = (uint16)(pit_get_ms(PIT_CH1));
+            pit_close(PIT_CH1);
             mt9v03x_csi_finish_flag = 0;
+            ips114_showuint16(0, 0, (uint16)trans_ms);
         }
     }
 }

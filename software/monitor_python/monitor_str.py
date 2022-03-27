@@ -15,7 +15,7 @@ while True:
     try:
         print(
             "({})[{}Bytes]Received from {}:\n{}\n".format(
-                recvCount, len(data), addr, data.decode("utf-8")
+                recvCount, len(data), addr, data
             )
         )
     except Exception as e:

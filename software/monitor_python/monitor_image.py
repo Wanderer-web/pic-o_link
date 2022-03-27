@@ -33,8 +33,7 @@ while True:
     )
     try:
         data = np.frombuffer(data, np.uint8)  # 将获取到的字符流数据转换成1维数组
-        data = data[4:-3]
-        decimg = data.reshape((60, 80))
+        decimg = data.reshape((60, 90))
         decimg = cv2.resize(decimg, (270, 180))
         cv2.imshow("SERVER", decimg)  # 显示图像
         cv2.waitKey(5)
