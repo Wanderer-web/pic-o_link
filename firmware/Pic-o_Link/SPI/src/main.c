@@ -1,7 +1,7 @@
 /*
  * @Author: Wanderer
  * @Date: 2022-03-07 20:55:31
- * @LastEditTime: 2022-03-20 22:17:11
+ * @LastEditTime: 2022-03-27 16:24:58
  * @LastEditors: Please set LastEditors
  * @Description: 主函数
  * @FilePath: \UART\src\main.c
@@ -38,7 +38,7 @@ void spiInit(void)
 
     // Configuration for the SPI slave interface
     spi_slave_interface_config_t slvcfg = {
-        .mode = 0,
+        .mode = 3,
         .spics_io_num = GPIO_CS,
         .queue_size = 3,
         .flags = 0,

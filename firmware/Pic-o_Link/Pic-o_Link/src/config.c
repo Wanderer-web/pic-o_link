@@ -1,7 +1,7 @@
 /*
  * @Author: Wanderer
  * @Date: 2022-03-24 18:05:03
- * @LastEditTime: 2022-03-25 12:46:00
+ * @LastEditTime: 2022-03-26 10:58:31
  * @LastEditors: Please set LastEditors
  * @Description: 配置驱动
  * @FilePath: \UART\src\config.c

@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-03-24 19:02:19
- * @LastEditTime: 2022-03-24 19:46:52
+ * @LastEditTime: 2022-03-27 15:55:14
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: \Pic-o_Link\src\spi.c
@@ -35,12 +35,12 @@ void spiInit(void)
         .sclk_io_num = GPIO_SCLK,
         .quadwp_io_num = -1,
         .quadhd_io_num = -1,
-        .max_transfer_sz = 10000,
+        .max_transfer_sz = 20000,
     };
 
     // Configuration for the SPI slave interface
     spi_slave_interface_config_t slvcfg = {
-        .mode = 0,
+        .mode = 3,
         .spics_io_num = GPIO_CS,
         .queue_size = 3,
         .flags = 0,
@@ -72,7 +72,7 @@ void spi_recv_task(void *pvParameters)
     while (1)
     {
         // Set up a transaction of 10000 bytes to send/receive
-        t.length = 6000 * 8;
+        t.length = 10000 * 8;
         t.tx_buffer = NULL;
         t.rx_buffer = spiRecvDataPtr;
         ESP_ERROR_CHECK(spi_slave_transmit(RCV_HOST, &t, portMAX_DELAY));

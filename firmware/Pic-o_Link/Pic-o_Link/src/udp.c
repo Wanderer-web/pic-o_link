@@ -1,7 +1,7 @@
 /*
  * @Author: Wanderer
  * @Date: 2022-03-12 17:05:21
- * @LastEditTime: 2022-03-24 20:44:41
+ * @LastEditTime: 2022-03-27 16:14:20
  * @LastEditors: Please set LastEditors
  * @Description: udp模块
  * @FilePath: \UART\src\udp.c
@@ -42,15 +42,13 @@ void udp_client_task(void *pvParameters)
         setRgbLevel(1, 1, 0);
         while (1)
         {
-            if (xSemaphoreTake(xSemaphore_udpSend, 1) == pdTRUE) //等待0核接收完串口数据
+            xSemaphoreTake(xSemaphore_udpSend, portMAX_DELAY); //等待0核接收完串口数据
+            int err = sendto(sock, udpSendDataPtr, udpSendDataLength, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
+            setRgbLevel(1, 1, 0);
+            if (err < 0)
             {
-                int err = sendto(sock, udpSendDataPtr, udpSendDataLength, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
-                setRgbLevel(1, 1, 0);
-                if (err < 0)
-                {
-                    ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
-                    break;
-                }
+                ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
+                break;
             }
         }
         if (sock != -1)

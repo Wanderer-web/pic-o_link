@@ -41,7 +41,7 @@
 #define SPI_MISO_PIN SPI4_MISO_C21 //接模块SDO
 #define SPI_CS_PIN SPI4_CS0_C20    //接模块CS
 
-uint16 trans_ms = 0;
+uint16 trans_us = 0;
 
 int main(void)
 {
@@ -49,7 +49,7 @@ int main(void)
     board_init(); //务必保留，本函数用于初始化MPU 时钟 调试串口
 
     //此处编写用户代码(例如：外设初始化代码等)
-    spi_init(SPI_NUM, SPI_SCK_PIN, SPI_MOSI_PIN, SPI_MISO_PIN, SPI_CS_PIN, 0, 7 * 1000 * 1000); //硬件SPI初始化，波特率5M
+    spi_init(SPI_NUM, SPI_SCK_PIN, SPI_MOSI_PIN, SPI_MISO_PIN, SPI_CS_PIN, 3, 10 * 1000 * 1000); //硬件SPI初始化，波特率10M
     mt9v03x_csi_init();
     ips114_init();
     systick_delay_ms(1000);
@@ -62,10 +62,10 @@ int main(void)
         {
             pit_start(PIT_CH1);
             spi_mosi(SPI_NUM, SPI_CS_PIN, mt9v03x_csi_image[0], NULL, 60 * 90, 1);
-            trans_ms = (uint16)(pit_get_ms(PIT_CH1));
+            trans_us = (uint16)(pit_get_us(PIT_CH1));
             pit_close(PIT_CH1);
             mt9v03x_csi_finish_flag = 0;
-            ips114_showuint16(0, 0, (uint16)trans_ms);
+            ips114_showuint16(0, 0, (uint16)trans_us);
         }
     }
 }

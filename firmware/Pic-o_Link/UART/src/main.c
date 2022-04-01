@@ -1,7 +1,7 @@
 /*
  * @Author: Wanderer
  * @Date: 2022-03-07 20:55:31
- * @LastEditTime: 2022-03-24 16:21:33
+ * @LastEditTime: 2022-03-27 16:22:52
  * @LastEditors: Please set LastEditors
  * @Description: 主函数
  * @FilePath: \UART\src\main.c
@@ -27,7 +27,7 @@ int uartDataLength = 0; //实际接收的数据长度
 void uartInit(void)
 {
     const uart_config_t uart_config = {
-        .baud_rate = 3000000, //波特率
+        .baud_rate = 5000000, //波特率
         .data_bits = UART_DATA_8_BITS,
         .parity = UART_PARITY_DISABLE,
         .stop_bits = UART_STOP_BITS_1,

@@ -22,6 +22,10 @@ void udp_client_task(void *pvParameters)
 {
     int addr_family = 0;
     int ip_protocol = 0;
+    if (xSemaphore_udpSend == NULL)
+    {
+        ESP_LOGE(TAG, "can't create udp semaphore");
+    }
     while (1)
     {
         struct sockaddr_in dest_addr;
@@ -41,15 +45,13 @@ void udp_client_task(void *pvParameters)
         setRgbLevel(1, 1, 0);
         while (1)
         {
-            if (xSemaphoreTake(xSemaphore_udpSend, 1) == pdTRUE) //等待0核接收完串口数据
+            xSemaphoreTake(xSemaphore_udpSend, portMAX_DELAY);
+            int err = sendto(sock, spiDataPtr, spiDataLength, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
+            setRgbLevel(1, 1, 0);
+            if (err < 0)
             {
-                int err = sendto(sock, spiDataPtr, spiDataLength, 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
-                setRgbLevel(1, 1, 0);
-                if (err < 0)
-                {
-                    ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
-                    break;
-                }
+                ESP_LOGE(TAG, "Error occurred during sending: errno %d", errno);
+                break;
             }
         }
         if (sock != -1)
@@ -60,6 +62,5 @@ void udp_client_task(void *pvParameters)
             close(sock);
         }
     }
-    setRgbLevel(0, 1, 1);
     vTaskDelete(NULL);
 }
