@@ -17,7 +17,7 @@
 #define RCV_HOST HSPI_HOST
 
 const char *TAG = "app_main";
-static const int RX_BUF_SIZE = 10000;
+static const int RX_BUF_SIZE = 30000;
 SemaphoreHandle_t xSemaphore_udpSend = NULL; // udp发送信号量
 char *spiDataPtr = NULL;                     //指向接收缓冲区
 int spiDataLength = 0;                       //实际接收的数据长度
@@ -33,7 +33,7 @@ void spiInit(void)
         .sclk_io_num = GPIO_SCLK,
         .quadwp_io_num = -1,
         .quadhd_io_num = -1,
-        .max_transfer_sz = 10000,
+        .max_transfer_sz = RX_BUF_SIZE,
     };
 
     // Configuration for the SPI slave interface
@@ -82,7 +82,7 @@ void app_main(void)
     while (1)
     {
         // Set up a transaction of 6000 bytes to send/receive
-        t.length = 6000 * 8;
+        t.length = 25000 * 8;
         t.tx_buffer = NULL;
         t.rx_buffer = recvbuf;
         ESP_ERROR_CHECK(spi_slave_transmit(RCV_HOST, &t, portMAX_DELAY));

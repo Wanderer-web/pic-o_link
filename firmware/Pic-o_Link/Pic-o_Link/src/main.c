@@ -40,6 +40,6 @@ void app_main(void)
     }
     else if (picoConfig.protocol == PROTOCOL_SPI)
     {
-        xTaskCreatePinnedToCore(spi_recv_task, "spi_recv", 20000, NULL, 4, NULL, 0); //将spi接收任务交给0核
+        xTaskCreatePinnedToCore(spi_recv_task, "spi_recv", 30000, NULL, 4, NULL, 0); //将spi接收任务交给0核
     }
 }

@@ -15,7 +15,7 @@
 
 #define RCV_HOST HSPI_HOST
 
-#define RX_BUF_SIZE 20000
+#define RX_BUF_SIZE 30000
 static const char *TAG = "spi_recv";
 WORD_ALIGNED_ATTR char *spiRecvDataPtr = NULL; //四字节对齐
 
@@ -35,7 +35,7 @@ void spiInit(void)
         .sclk_io_num = GPIO_SCLK,
         .quadwp_io_num = -1,
         .quadhd_io_num = -1,
-        .max_transfer_sz = 20000,
+        .max_transfer_sz = RX_BUF_SIZE,
     };
 
     // Configuration for the SPI slave interface
@@ -72,7 +72,7 @@ void spi_recv_task(void *pvParameters)
     while (1)
     {
         // Set up a transaction of 10000 bytes to send/receive
-        t.length = 10000 * 8;
+        t.length = 25000 * 8;
         t.tx_buffer = NULL;
         t.rx_buffer = spiRecvDataPtr;
         ESP_ERROR_CHECK(spi_slave_transmit(RCV_HOST, &t, portMAX_DELAY));
