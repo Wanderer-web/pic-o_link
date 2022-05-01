@@ -14,7 +14,7 @@
 
 开源智能车图传上位机可以使用另一位大佬的 https://gitee.com/zhou-wenqi/ipc-for-car.git
 
-没有精力自制可直接购买成品，Pic-o Link 成品已上架淘宝：https://m.tb.cn/h.fLp50d0?tk=2Hlu26q4nDN
+没有精力自制可直接购买成品，Pic-o Link 成品已上架淘宝：https://m.tb.cn/h.fKasoOm?tk=pqB52h37KoX
 
 **PCB 仿真如下**
 
