@@ -6,15 +6,13 @@
 >
 > esp32 硬件支持 5Mbps UART 和 10Mbps SPI slave
 
-由于芯片名称里有一个 pico 单词而且本项目和图像有关，所以将该模块取名为 Pic-o Link
-
 该模块的一大特点是可以兼容逐飞的无线串口接口，具有硬件流控功能，并且可以直接使用逐飞的无线串口驱动实现单向通信，免去了车友们测试该模块需要重新制板的需要，**目前仅支持单向发送到上位机**
 
 本项目还处于雏形，代码硬件还比较粗糙，欢迎各位大佬来交流和提出改进意见，本人QQ：1626632460
 
 开源智能车图传上位机可以使用另一位大佬的 https://gitee.com/zhou-wenqi/ipc-for-car.git
 
-没有精力自制可直接购买成品，Pic-o Link 成品已上架淘宝：https://m.tb.cn/h.fKasoOm?tk=pqB52h37KoX
+B站视频链接：https://www.bilibili.com/video/BV1oZ4y1m7y2
 
 **PCB 仿真如下**
 
