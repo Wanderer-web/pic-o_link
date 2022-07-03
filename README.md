@@ -1,6 +1,6 @@
 
 
-# 基于ESP32的多协议转WiFi模块
+# 基于ESP32的多协议WiFi透传模块
 
 > 本项目为基于乐鑫公司的 ESP32-pico-d4 芯片制作的无线模块，具有多个通信协议接口：UART、SPI。设计初衷是为了方便智能车比赛的摄像头算法调试，通过和上位机配合降低调试难度
 >
@@ -8,9 +8,9 @@
 
 该模块的一大特点是可以兼容逐飞的无线串口接口，具有硬件流控功能，并且可以直接使用逐飞的无线串口驱动实现单向通信，免去了车友们测试该模块需要重新制板的需要，**目前仅支持单向发送到上位机**
 
-本项目还处于雏形，代码硬件还比较粗糙，欢迎各位大佬来交流和提出改进意见，本人QQ：1626632460
+本项目软硬件比较粗糙，欢迎各位大佬来交流和提出改进意见，本人QQ：1626632460
 
-开源智能车图传上位机可以使用另一位大佬的 https://gitee.com/zhou-wenqi/ipc-for-car.git
+**开源智能车图传上位机可以使用致用上位机**，**该模块主要配合该上位机使用**，**使用手册和单片机例程在这个上位机仓库里**，链接：https://gitee.com/zhou-wenqi/ipc-for-car
 
 B站视频链接：https://www.bilibili.com/video/BV1oZ4y1m7y2
 
@@ -22,16 +22,16 @@ B站视频链接：https://www.bilibili.com/video/BV1oZ4y1m7y2
 |   焊接效果   |    ![IMG_20220329_100642](image/IMG_20220329_100642.jpg)     |
 | 立创开源链接 | https://oshwhub.com/Wander_er/891fe1d235694ef7afe684f5a2f05b73 |
 
-**目录结构**
+## 目录结构
 
-- `doc` 文档
-- `firmware` Pic-o Link 固件及单片机使用例程
-  - `Pic-o_Link` Pic-o Link 固件
-  - `RT1064 `RT1064 使用例程
-- `hardware` Pic-o Link 的硬件文件
-- `software` 上位机软件
-  - `monitor_python` python 上位机脚本
-- `image`图片
+|   名称   |            作用            |
+| :------: | :------------------------: |
+|   doc    |          芯片文档          |
+| example  |     驱动文件~~及例程~~     |
+| firmware |            固件            |
+| hardware |            硬件            |
+|  image   |            图片            |
+| software | 简易图传上位机 python 脚本 |
 
 ## 硬件（立创EDA-专业版）
 
@@ -134,7 +134,7 @@ B站视频链接：https://www.bilibili.com/video/BV1oZ4y1m7y2
 
 **如何进入下载模式烧录固件？**
 
-- 电脑使用 USB 转 TTL 串口助手连接 `Pic-o Link` ，按住 Pic-o Link `DOWNLOAD` 键不放再按一下 `RESET` 键，**rgb 灯不亮即进入了下载模式**，可以点击 Platform IO 底部的下载按键一键编译下载，下载完毕后一定要记得按 `RESET` 键
+- 电脑使用 USB 转 TTL 串口助手连接 `Pic-o Link` ，按住 Pic-o Link `DOWNLOAD` 键不放再按一下 `RESET` 键，然后点击 Platform IO 底部的下载按键一键编译下载，下载完毕后一定要记得按 `RESET` 键
 
 ![下载前操作](image/下载前操作.gif)
 
@@ -174,71 +174,12 @@ UART 模式以 TC264 为例（参考逐飞无线串口接口原理图，可直�
 
 ## 软件
 
-简易的 python 脚本
+简易的 python 图传上位机显示脚本，带帧头帧尾检测，类似于致用上位机
 
-- 串口发送测试
-- 接收图像显示
+运行需要的 python 库：
 
-## 测试1
-
-**UART** 1.5Mbps 透传模式
-
-> 由于电脑串口助手没有引出硬件流控引脚，所以在串口在发送大量数据时可能会丢失，固定字节模式固定的字节数可能达不到引发错误，所以电脑测试统一使用透传模式
-
-使用电脑串口通信，电脑运行脚本 `.\software\monitor_python\serial_sender.py` 通过串口向 `Pic-o Link` 发送视频帧数据（`.\software\monitor_python\example1.mp4`）。为 90 x 60 灰度图，大小5400字节
-
-电脑运行 `.\software\monitor_python\monitor_image.py` 脚本接收图像。
-
-视频见文件 `.\image\测试1.mp4`，接收还原的视频平均帧数16.2帧，，实际串口发送延迟35ms
-
-总共发送4555帧，出现14帧错误。错误率：0.3%
-
-![测试1](image/测试1.png)
-
-## 测试2
-
-**UART** 1.5Mbps 透传模式
-
-使用电脑串口通信，电脑运行脚本 `.\software\monitor_python\serial_sender_color.py` 通过串口向 `Pic-o Link` 发送彩色视频帧数据（`.\software\monitor_python\example2.mp4`）。为 45 x 30 彩色图，大小不固定，平均3500字节。
-
-电脑运行 `.\software\monitor_python\monitor_image_color.py` 脚本接收彩色图像。
-
-视频见文件 `.\image\测试2.mp4`，接收还原的视频平均帧数20帧，实际串口发送延迟23ms
-
-![测试2](image/测试2.png)
-
-## 测试3
-
-**UART** 5Mbps 固定字节模式
-
-使用 RT1064 通信，波特率 5Mbps，RT1064 固件为 `.\firmware\rt1064\UART` 工程。
-
-电脑运行 `.\software\monitor_python\monitor_image.py` 脚本接收图像。
-
-使用摄像头为总钻风摄像头，图像分辨率 90 x 60，摄像头帧数50帧。
-
-RT1064 在主函数中刷新图像后发送采集图像。实际测试上位机平均每20ms收到图像，帧数50帧左右。由于使用硬件流控没有出现图像数据缺失，视频见文件 `.\image\测试3.mp4`，由于是电脑大屏显示，所以 90x60 的图像显得有些模糊。芯片测试得发送一张灰度图用时13ms
-
-![测试3](image/测试3.png)
-
-## 测试4
-
-**SPI**
-
-使用 RT1064 通信，SPI 频率 10Mbps，RT1064 固件为 `.\firmware\rt1064\SPI` 工程。
-
-电脑运行 `.\software\monitor_python\monitor_image.py` 脚本接收图像。
-
-使用摄像头为总钻风摄像头，图像分辨率 90 x 60，摄像头帧数50帧。
-
-RT1064 在主函数中刷新图像后发送采集图像。实际测试上位机平均每21ms收到图像，帧数50帧左右。芯片测试得发送一张灰度图用时4829us,视频见文件 `.\image\测试4.mp4`
-
-![测试4](image/测试4.png)
-
-## 缺陷
-
-- 发热比较严重
-- UART 固件透传模式有一个固定的 20ms 延迟
+- numpy
+- opencv-python
 
 ## 其他资料
 
