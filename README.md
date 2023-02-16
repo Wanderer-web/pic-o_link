@@ -1,189 +1,186 @@
+# ESP32-based multi-protocol WiFi transparent transmission module
 
+[English](README.md) | [中文](README_cn.md)
 
-# 基于ESP32的多协议WiFi透传模块
+This project is a wireless module based on the ESP32-pico-d4 chip from Espressif Systems, with multiple communication protocol interfaces: UART, SPI. The original intention of the design is to facilitate the debugging of the camera algorithm for smart car competitions, and to reduce the difficulty of debugging by cooperating with the upper computer.
 
-> 本项目为基于乐鑫公司的 ESP32-pico-d4 芯片制作的无线模块，具有多个通信协议接口：UART、SPI。设计初衷是为了方便智能车比赛的摄像头算法调试，通过和上位机配合降低调试难度
->
-> esp32 硬件支持 5Mbps UART 和 10Mbps SPI slave
+The esp32 hardware supports 5Mbps UART and 10Mbps SPI slave
 
-该模块的一大特点是可以兼容逐飞的无线串口接口，具有硬件流控功能，并且可以直接使用逐飞的无线串口驱动实现单向通信，免去了车友们测试该模块需要重新制板的需要，**目前仅支持单向发送到上位机**
+One of the features of this module is that it can be compatible with ZhiFly's wireless serial port interface, has hardware flow control function, and can directly use ZhiFly's wireless serial port driver to achieve one-way communication, eliminating the need for car friends to test this module. The need for re-board making, **currently only supports one-way transmission to the upper computer**
 
-本项目软硬件比较粗糙，欢迎各位大佬来交流和提出改进意见，本人QQ：1626632460
+This project software and hardware are rough, welcome everyone to communicate and make suggestions for improvement, my QQ: 1626632460
 
-**开源智能车图传上位机可以使用致用上位机**，**该模块主要配合该上位机使用**，**使用手册和单片机例程在这个上位机仓库里**，链接：https://gitee.com/zhou-wenqi/ipc-for-car
+**The open source smart car image transmission upper computer can use Zhiyong upper computer**, **this module is mainly used with this upper computer**, **the user manual and single-chip microcomputer routines are in this upper computer warehouse**, link: https://gitee.com/zhou-wenqi/ipc-for-car
 
-B站视频链接：https://www.bilibili.com/video/BV1oZ4y1m7y2
+B station video link: https://www.bilibili.com/video/BV1oZ4y1m7y2
 
-**PCB 仿真如下**
+**PCB simulation is as follows**
 
-|     类别     |                           UART+SPI                           |
-| :----------: | :----------------------------------------------------------: |
-|   3D仿真图   | <img src="image/image-20220313214931448.png" alt="image-20220313214931448" style="zoom:80%;" /> |
-|   焊接效果   |    ![IMG_20220329_100642](image/IMG_20220329_100642.jpg)     |
-| 立创开源链接 | https://oshwhub.com/Wander_er/891fe1d235694ef7afe684f5a2f05b73 |
+| Category |                         UART+SPI                          |
+| :------: | :-------------------------------------------------------: |
+| 3D simulation | <img src="image/image-20220313214931448.png" alt="image-20220313214931448" style="zoom:80%;" /> |
+| Welding effect |    ![IMG_20220329_100642](image/IMG_20220329_100642.jpg)     |
+| Lichuang open source link | https://oshwhub.com/Wander_er/891fe1d235694ef7afe684f5a2f05b73 |
 
-## 目录结构
+## Directory structure
 
-|   名称   |            作用            |
-| :------: | :------------------------: |
-|   doc    |          芯片文档          |
-|  driver  |          驱动文件          |
-| firmware |            固件            |
-| hardware |            硬件            |
-|  image   |            图片            |
-| software | 简易图传上位机 python 脚本 |
+| Name |         Function         |
+| :--: | :----------------------: |
+| doc  |       Chip document      |
+| driver |       Driver file       |
+| firmware |         Firmware         |
+| hardware |        Hardware        |
+| image  |         Picture         |
+| software | Simple image transmission upper computer python script |
 
-## 硬件（立创EDA-专业版）
+## Hardware (Lichuang EDA-Professional Edition)
 
-- 基于 esp32-pico-d4
-- spi 接口
-- uart 接口
-- 一个复位按键
-- 一个下载按键
-- 电源指示灯
-- rgb 三色灯
-- 5V 电源输入，3.3V 电源稳压
+- Based on esp32-pico-d4
+- spi interface
+- uart interface
+- A reset button
+- A download button
+- Power indicator light
+- rgb tricolor light
+- 5V power input, 3.3V power stabilization
 
-## 固件（基于 ESP-IDF 框架）
+## Firmware (based on ESP-IDF framework)
 
-**两种通信模式**
+**Two communication modes**
 
-- **UART** 波特率最大5Mbps，**一次最多接收20000字节**
+- **UART** baud rate up to 5Mbps, **receive up to 20000 bytes at a time**
 
-  使用串口轮询从缓冲区中提取接收数据，有两个参数，分别是接收缓冲区大小和最长等待时间，当接收的字节数达到缓冲区大小时立即视为完成一次接收；发送完毕但没有达到接收缓冲区大小时，则等待最长等待时间再视作完成一次传输，这个等待时间是固定的20ms
+  Use serial polling to extract received data from the buffer. There are two parameters, which are the receive buffer size and maximum wait time. When the number of bytes received reaches the buffer size, it is immediately regarded as completing a reception; when sending is completed but not reaching the receive buffer size , Then wait for a maximum waiting time before viewing as completing a transfer. This waiting time is fixed at 20ms.
 
-  所以可以视作具有两种模式，通过在固件中修改 `uart_read_bytes`() 函数的 `length` 参数切换
+  So it can be regarded as having two modes, switch by modifying `length` parameter in `uart_read_bytes`() function in firmware.
 
-  - **透传模式**：指传输数据没有固定的字节数限制，每次通信可以传输各种大小的数据，更加灵活
+   - **Transparent mode**: refers to no fixed byte limit for transmitted data. Each communication can transmit data of various sizes, more flexible.
 
-    使用透传模式建议发送间隔大于 `串口传输时间` + `20ms` + `udp传输时间(速率按30Mbps算)`
+     It is recommended that using transparent mode should have an interval greater than `serial port transmission time` + `20ms` + `udp transmission time (rate calculated at 30Mbps)`
 
-    `length` 参数为缓冲区大小 `RX_BUF_SIZE-1` 时为透传模式，即假设没有数据会达到这个长度
+     When `length` parameter is buffer size `RX_BUF_SIZE -1`, it is transparent mode , That is assuming that no data will reach this length.
 
-  - **固定字节模式**：指传输数据有固定的字节数限制，速度比透传模式更快，但只能传输固定大小的数据
+   - **Fixed byte mode**: refers to having a fixed byte limit for transmitted data. The speed is faster than transparent mode but can only transmit fixed-size data.
 
-    使用固定字节模式建议发送间隔大于 `串口传输时间`  +  `udp传输时间(速率按30Mbps算)`
+     It is recommended that using fixed byte mode should have an interval greater than `serial port transmission time` + `udp transmission time (rate calculated at 30Mbps)`
 
-    `length` 参数为要发送的固定数据的字节数时为固定字节，例如传输 60 x 90 灰度图时为 5400
+     When `length` parameter equals number of bytes of fixed data sent , It's fixed bytes , For example , When transmitting a grayscale image of 60 x 90 when it is 5400.
 
-    > 当然，发送低于这个长度的数据时也可视作为透传模式
+        > Of course, sending data lower than this length can also be regarded as transparent mode.
 
-- **SPI** 波特率最大10Mbps，**一次最多接收25000字节**
+- **SPI** baud rate up to 10Mbps, **receive up to 25000 bytes at a time**
+  - Only supports data reception of multiples of 4 bytes in length, SPI mode is 3
+  - Recommended transmission interval is greater than `SPI transmission time` + `udp transmission time (calculated at 30Mbps)`
 
-  - 只支持4字节倍数长度的数据接收，SPI 模式为3
-  - 建议发送间隔大于 `SPI传输时间` +  `udp传输时间(速率按30Mbps算)`
+**The firmware integrates UART and SPI two communication modes, which can be configured by serial communication protocol and written into Flash, without losing power, eliminating the need for repeated modification of firmware**
 
-**固件集成了 UART 和 SPI 两种通信模式，可以通过串口通信协议配置参数写进Flash里，掉电不丢失，免去了反复修改固件的需要**
+## Common questions
 
-## 常见问题
-
-**和下位机如何连线？**
+**How to connect with the lower computer?**
 
 - **UART**
 
-  |   Pic-o Link    |                            下位机                            |
-  | :-------------: | :----------------------------------------------------------: |
-  |       RXD       |                             TXD                              |
-  |       TXD       |                             RXD                              |
-  | RTS (复用 MOSI) | CTS（没有的话影响不大，但是要在下位机串口传输函数里禁掉流控检测） |
+  |   Pic-o Link    |                            Lower computer                            |
+  | :-------------: | :------------------------------------------------------------------: |
+  |       RXD       |                                TXD                                  |
+  |       TXD       |                                RXD                                  |
+  | RTS (multiplex MOSI) | CTS (if not available, it does not matter much, but you need to disable flow control detection in the lower computer serial transmission function) |
 
 - **SPI**
 
-  | Pic-o Link | 下位机 |
-  | :--------: | :----: |
-  |    CLK     |  CLK   |
-  |    MISO    |  MISO  |
-  |    MOSI    |  MOSI  |
-  |     CS     |   CS   |
+  | Pic-o Link | Lower computer |
+  | :--------: | :------------: |
+  |    CLK     |      CLK       |
+  |    MISO    |      MISO      |
+  |    MOSI    |      MOSI      |
+  |     CS     |       CS       |
 
-- **5V 供电，地线必接**
+- **5V power supply, ground wire must be connected**
 
-**如何计算传完一张图像所用的时间？**
+**How to calculate the time it takes to send a complete image?**
 
-以 UART 3Mbps 传输 60 x 90 灰度图为例，首先计算图像的位数：60 x 90 x 8 = 43200 bits，再用位数除以波特率：43200 / 3000000  = 0.0144 s = 14.4 ms
+Take UART 3Mbps transmission of a grayscale image of size as an example. First calculate the number of bits in the image: = x x = bits. Then divide the number of bits by the baud rate: / = s = ms
 
-**如何进入和使用配置模式？**
+**How to enter and use configuration mode?**
 
-电脑使用 USB 转 TTL 串口助手连接 `Pic-o Link`，短接 `MOSI` 和 `CS` 引脚再复位，**rgb 指示灯显示黄色**代表进入配置模式，此时可以通过串口配置 Pic-o Link 参数，**波特率115200**，协议见表格
+Use USB to TTL serial assistant on your computer to connect `Pic-o Link`, short-circuit `MOSI` and `CS` pins and then reset. The **rgb indicator light shows yellow** indicates that you have entered configuration mode. At this time, you can configure Pic-o Link parameters through serial port. The **baud rate is115200**, and the protocol is shown in the table
 
-|             类别             |               备注               |   帧头   |  长度  |
-| :--------------------------: | :------------------------------: | :------: | :----: |
-|         通信协议选择         | 8位无符号整形，0 : UART, 1 : SPI | 0x41 (A) | 1字节  |
-|     UART 通信模式波特率      |    32位无符号整形，<=5000000     | 0x42 (B) | 4字节  |
-| UART 通信模式接收缓冲字节数  |     16位无符号整形，<=20000      | 0x43 (C) | 2字节  |
-|          WiFi 账号           |        字符串，最长32字节        | 0x44 (D) | 32字节 |
-|          WiFi 密码           |        字符串，最长64字节        | 0x45 (E) | 64字节 |
-|      UDP Server ip地址       |        字符串，最长16字节        | 0x46 (F) | 16字节 |
-|       UDP Server 端口        |     16位无符号整形，<= 65535     | 0x47 (G) | 2字节  |
-|         读取模块参数         |              单指令              | 0x48 (H) |   无   |
-| 将模块内存中的参数写入 Flash |              单指令              | 0x49 (I) |   无   |
+|             Category             |               Remark               |   Frame header   | Length |
+| :--------------------------:     | :------------------------------:   | :------:         |- ----:|
+|         Communication protocol selection         |-bit unsigned integer,: UART,: SPI| (A)| byte|
+|     UART communication mode baud rate      |-bit unsigned integer,,=| (B)| bytes|
+| UART communication mode receive buffer byte number|-bit unsigned integer,,=| (C)| bytes|
+|          WiFi account           |-string,,=| (D)| bytes|
+|          WiFi password           |-string,,=| (E)| bytes|
+|      UDP Server ip address       |-string,,=| (F)| bytes|
+|       UDP Server port        |-bit unsigned integer,,=|(G)| bytes|
+|         Read module parameters         |-single instruction              |- H)        |- none   |
+|-Write module memory parameters into Flash|-single instruction              |- I)        |- none   |
 
-**具体配置哪个 IP 地址？**
+**Which IP address should I configure specifically?**
 
-以下两种情形指示了 Pic-o Link 配置的 IP 地址参数：
+The following two situations indicate the IP address parameters configured by Pic-o Link:
 
-![使用情形](image/使用情形.png)
+![Usage situation](image/使用情形.png)
 
+**How to open the firmware project?**
 
-
-**如何打开固件工程？**
-
-- 安装 **VS code** 的 **Platform IO** 插件，然后右键 `Pic-o Link` 文件夹选择 `通过 Code 打开`，**打开后等待一段时间，插件会自动安装好依赖和编译工具链**
+- Install the **Platform IO** plugin for **VS code**, then right-click the `Pic-o Link` folder and select `Open with Code`, **wait for a while after opening, the plugin will automatically install the dependencies and compile toolchain**
 
 ![image-20220419130240555](image/image-20220419130240555.png)
 
-**如何进入下载模式烧录固件？**
+**How to enter download mode and flash firmware?**
 
-- 电脑使用 USB 转 TTL 串口助手连接 `Pic-o Link` ，按住 Pic-o Link `DOWNLOAD` 键不放再按一下 `RESET` 键，然后点击 Platform IO 底部的下载按键一键编译下载，下载完毕后一定要记得按 `RESET` 键
+- Use USB to TTL serial assistant to connect `Pic-o Link` to your computer, press and hold the `DOWNLOAD` button on Pic-o Link and then press the `RESET` button, then click the download button at the bottom of Platform IO to compile and download with one click, remember to press the `RESET` button after downloading
 
-![下载前操作](image/下载前操作.gif)
+![Download operation before](image/下载前操作.gif)
 
 ![image-20220419130424740](image/image-20220419130424740.png)
 
-**如何修改模块的主机名？**
+**How to modify the hostname of the module?**
 
-- 修改 `sdkconfig.pico32` 文件的 `CONFIG_LWIP_LOCAL_HOSTNAME` 项再重新编译烧录固件
+- Modify the `CONFIG_LWIP_LOCAL_HOSTNAME` item in the `sdkconfig.pico32` file and recompile and flash firmware
 
-**模块支持的WiFI频率？**
+**What WiFI frequency does the module support?**
 
-- 仅支持2.4GHz
+- Only supports 2.4GHz
 
-**接口及PCB绘制要求**？
+**Interface and PCB drawing requirements?**
 
-- 接口：2.54mm 2x4p 排母
-- 5V 电源至少要保证 500mA 的输出电流
+- Interface: 2.54mm 2x4p female header
+- 5V power supply must ensure at least 500mA output current
 
-UART 模式以 TC264 为例（参考逐飞无线串口接口原理图，可直接照搬，注意相比一般的 UART 接口额外需要一个流控引脚，可以模仿逐飞无线串口发送驱动用一个 GPIO 作为输入模式来模拟）
+UART mode takes TC264 as an example (refer to ZhiFei wireless serial port interface schematic diagram, can be directly copied, note that compared with general UART interface an additional flow control pin is required, can imitate ZhiFei wireless serial port send driver use a GPIO as input mode to simulate)
 
 ![image-20220419132729475](image/image-20220419132729475.png)
 
-## 工作流程
+## Workflow
 
-1. 上电
-2. nvs flash 初始化
-3. 加载 Flash 配置参数
-4. 检测是否进入配置模式
-5. 根据配置参数进入通信模式
-6. 设置为 WiFi STA 模式
-7. WiFI 硬件初始化成功开始扫描 WiFi，指示灯显示当前状态 -> **红**
-8. WiFi 连接成功，指示灯显示当前状态 -> **绿**（会闪的很快，立即进入9）
-9. 设置为 udp client 模式，指示灯显示当前状态 -> **蓝**
-10. 等待下位机传输数据，指示灯显示当前状态 -> **白**
-11. 下位机传输完数据，模块开始通过 WiFi udp 向上位机 udp  server 发送数据
-12. 回到 10
+1. Power on
+2. nvs flash initialization
+3. Load Flash configuration parameters
+4. Check whether to enter configuration mode
+5. Enter communication mode according to configuration parameters
+6. Set as WiFi STA mode
+7. WiFI hardware initialization successful start scanning WiFi, indicator light shows current status -> **red**
+8. WiFi connection successful, indicator light shows current status -> **green** (will flash very fast, immediately enter 9)
+9. Set as udp client mode, indicator light shows current status -> **blue**
+10. Wait for lower machine transmission data, indicator light shows current status -> **white**
+11. Lower machine transmission data completed, module starts sending data through WiFi udp to upper machine udp server
+12. Return to 10
 
-## 软件
+## Software
 
-简易的 python 图传上位机显示脚本，带帧头帧尾检测，类似于致用上位机
+Simple python image transmission upper machine display script, with frame header and frame tail detection, similar to Zhiyong upper machine
 
-运行需要的 python 库：
+Python libraries required for running:
 
 - numpy
 - opencv-python
 
-## 其他资料
+## Other information
 
-乐鑫官方测试的 ESP32 的 udp/tcp 速率：
+Espressif official test of ESP32 udp/tcp rate:
 
 | Type/Throughput      | Air In Lab | Shield-box     | Test Tool     | IDF Version (commit ID) |
 | -------------------- | ---------- | -------------- | ------------- | ----------------------- |
