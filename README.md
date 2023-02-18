@@ -2,17 +2,18 @@
 
 [English](README.md) | [中文](README_cn.md)
 
-This project is a wireless module based on the ESP32-pico-d4 chip from Espressif Systems, with multiple communication protocol interfaces: UART, SPI. The original intention of the design is to facilitate the debugging of the camera algorithm for smart car competitions, and to reduce the difficulty of debugging by cooperating with the upper computer.
+> This project is a wireless module based on the ESP32-pico-d4 chip from Espressif Systems, with multiple communication protocol interfaces: UART, SPI. The original intention of the design is to facilitate the debugging of the camera algorithm for smart car competitions, and to reduce the difficulty of debugging by cooperating with the upper computer.
+>
+> The esp32 hardware supports 5Mbps UART and 10Mbps SPI slave
+>
 
-The esp32 hardware supports 5Mbps UART and 10Mbps SPI slave
-
-One of the features of this module is that it can be compatible with ZhiFly's wireless serial port interface, has hardware flow control function, and can directly use ZhiFly's wireless serial port driver to achieve one-way communication, eliminating the need for car friends to test this module. The need for re-board making, **currently only supports one-way transmission to the upper computer**
+One of the features of this module is that it can be compatible with ZhuFei wireless serial port interface, has hardware flow control function, and can directly use ZhuFei wireless serial port driver to achieve one-way communication, eliminating the need for car friends to test this module. The need for re-board making, **currently only supports one-way transmission to the upper computer**
 
 This project software and hardware are rough, welcome everyone to communicate and make suggestions for improvement, my QQ: 1626632460
 
 **The open source smart car image transmission upper computer can use Zhiyong upper computer**, **this module is mainly used with this upper computer**, **the user manual and single-chip microcomputer routines are in this upper computer warehouse**, link: https://gitee.com/zhou-wenqi/ipc-for-car
 
-B station video link: https://www.bilibili.com/video/BV1oZ4y1m7y2
+Bilibili video link: https://www.bilibili.com/video/BV1oZ4y1m7y2
 
 **PCB simulation is as follows**
 
@@ -20,7 +21,7 @@ B station video link: https://www.bilibili.com/video/BV1oZ4y1m7y2
 | :------: | :-------------------------------------------------------: |
 | 3D simulation | <img src="image/image-20220313214931448.png" alt="image-20220313214931448" style="zoom:80%;" /> |
 | Welding effect |    ![IMG_20220329_100642](image/IMG_20220329_100642.jpg)     |
-| Lichuang open source link | https://oshwhub.com/Wander_er/891fe1d235694ef7afe684f5a2f05b73 |
+| JLC open source link | https://oshwhub.com/Wander_er/891fe1d235694ef7afe684f5a2f05b73 |
 
 ## Directory structure
 
@@ -69,6 +70,7 @@ B station video link: https://www.bilibili.com/video/BV1oZ4y1m7y2
         > Of course, sending data lower than this length can also be regarded as transparent mode.
 
 - **SPI** baud rate up to 10Mbps, **receive up to 25000 bytes at a time**
+  
   - Only supports data reception of multiples of 4 bytes in length, SPI mode is 3
   - Recommended transmission interval is greater than `SPI transmission time` + `udp transmission time (calculated at 30Mbps)`
 
@@ -99,23 +101,23 @@ B station video link: https://www.bilibili.com/video/BV1oZ4y1m7y2
 
 **How to calculate the time it takes to send a complete image?**
 
-Take UART 3Mbps transmission of a grayscale image of size as an example. First calculate the number of bits in the image: = x x = bits. Then divide the number of bits by the baud rate: / = s = ms
+Take UART 3Mbps transmission of a grayscale image of size as an example. First calculate the number of bits in the image: 60 x 90 x 8 = 43200 bits. Then divide the number of bits by the baud rate: 43200 / 3000000  = 0.0144 s = 14.4 ms
 
 **How to enter and use configuration mode?**
 
-Use USB to TTL serial assistant on your computer to connect `Pic-o Link`, short-circuit `MOSI` and `CS` pins and then reset. The **rgb indicator light shows yellow** indicates that you have entered configuration mode. At this time, you can configure Pic-o Link parameters through serial port. The **baud rate is115200**, and the protocol is shown in the table
+Use USB to TTL serial assistant on your computer to connect `Pic-o Link`, short-circuit `MOSI` and `CS` pins and then reset. The **rgb indicator light shows yellow** indicates that you have entered configuration mode. At this time, you can configure Pic-o Link parameters through serial port. **The baud rate is 115200**, and the protocol is shown in the table
 
 |             Category             |               Remark               |   Frame header   | Length |
 | :--------------------------:     | :------------------------------:   | :------:         |- ----:|
-|         Communication protocol selection         |-bit unsigned integer,: UART,: SPI| (A)| byte|
-|     UART communication mode baud rate      |-bit unsigned integer,,=| (B)| bytes|
-| UART communication mode receive buffer byte number|-bit unsigned integer,,=| (C)| bytes|
-|          WiFi account           |-string,,=| (D)| bytes|
-|          WiFi password           |-string,,=| (E)| bytes|
-|      UDP Server ip address       |-string,,=| (F)| bytes|
-|       UDP Server port        |-bit unsigned integer,,=|(G)| bytes|
-|         Read module parameters         |-single instruction              |- H)        |- none   |
-|-Write module memory parameters into Flash|-single instruction              |- I)        |- none   |
+|         Communication protocol selection         |8bits unsigned integer, 0 : UART, 1 : SPI| 0x41 (A) | 1byte |
+|     UART communication mode baud rate      |    32bits unsigned integer, <=5000000     | 0x42 (B) | 4bytes |
+| UART communication mode receive buffer byte number|     16bits unsigned integer, <=20000      |   0x43 (C)   | 2bytes |
+|          WiFi account           |          string, up to 32 bytes           |   0x44 (D)   | 32bytes |
+|          WiFi password           |          string, up to 64 bytes           |   0x45 (E)   | 64bytes |
+|      UDP Server ip address       |string, up to 16 bytes|   0x46 (F)   | 16bytes |
+|       UDP Server port        |16bits unsigned integer, <=65535|   0x47 (G)   | 2bytes |
+|         Read module parameters         |single instruction              |   0x48 (H)   |none   |
+|Write module memory parameters into Flash|single instruction              |   0x49 (I)   |none   |
 
 **Which IP address should I configure specifically?**
 
@@ -150,7 +152,7 @@ The following two situations indicate the IP address parameters configured by Pi
 - Interface: 2.54mm 2x4p female header
 - 5V power supply must ensure at least 500mA output current
 
-UART mode takes TC264 as an example (refer to ZhiFei wireless serial port interface schematic diagram, can be directly copied, note that compared with general UART interface an additional flow control pin is required, can imitate ZhiFei wireless serial port send driver use a GPIO as input mode to simulate)
+UART mode takes TC264 as an example (refer to ZhuFei wireless serial port interface schematic diagram, can be directly copied, note that compared with general UART interface an additional flow control pin is required, can imitate ZhuFei wireless serial port send driver use a GPIO as input mode to simulate)
 
 ![image-20220419132729475](image/image-20220419132729475.png)
 
@@ -165,13 +167,13 @@ UART mode takes TC264 as an example (refer to ZhiFei wireless serial port interf
 7. WiFI hardware initialization successful start scanning WiFi, indicator light shows current status -> **red**
 8. WiFi connection successful, indicator light shows current status -> **green** (will flash very fast, immediately enter 9)
 9. Set as udp client mode, indicator light shows current status -> **blue**
-10. Wait for lower machine transmission data, indicator light shows current status -> **white**
-11. Lower machine transmission data completed, module starts sending data through WiFi udp to upper machine udp server
+10. Wait for lower computer transmission data, indicator light shows current status -> **white**
+11. Lower computer transmission data completed, module starts sending data through WiFi udp to upper computer udp server
 12. Return to 10
 
 ## Software
 
-Simple python image transmission upper machine display script, with frame header and frame tail detection, similar to Zhiyong upper machine
+Simple python image transmission upper computer display script, with frame header and frame tail detection, similar to Zhiyong upper computer
 
 Python libraries required for running:
 
